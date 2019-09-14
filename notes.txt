@@ -1,0 +1,85 @@
+Burada bu projeyi nasil gelistirdigimizi yazacagiz
+ilk olarak, intellj kullanarak bir spring boot project i create ettik
+yaptigmiz is ise intellij uzerinden spring initializer ile yeni project olusturmak.
+aslinda is icin
+    buradan maven project i olusturalim, 
+	Spring Initializr uzerinden
+		1- buradan jdk i seciyoruz ilk basta, start-spring.io dan spring boot application i kuracagiz, onu soyledik
+		2- buradan project group ve artifact larini sectik
+			project builder ini sectik, maven based project archive
+			kullanilacak PL i sectik, java
+			output file inin nasil paketlenecegini sectik, jar
+			hangi java ile paketlenecegini sectik.
+		3- spring dependency lerini seciyoruz
+			web bize yeter simdilik
+    project oluturuldu,
+	
+bize simdi project icin spring jpa ve h2 da lazim onlari da pom xml e dependency olarak ekliyoruz
+sonrasinda intellj kendisi import edeyim mi diye soruyor zaten.
+
+sonrasinda h2 nin log larini gorebilmek icin application.properties file na:
+	spring.h2.console.enabled=true
+parametresini koyuyoruz, spring boot buradan property leri okuyarak, ona gore h2 yu kaldiracak.
+
+ilk olarak data object ini gelistirelim:
+	Employee
+		id name address sex 
+		entity package i icinde olsun.
+		class uzerine @Entity annotation ini ekliyoruz, 
+			bu javax.persistance dan geliyor, spring-boot-starter-data-jpa package indan.
+			id class variable inin uzerinde @Id ve @GeneratedValue id bu class icin olusturulan table da primary key olarak kullanilacagiz, GeneratedValue ise otomatik olarak id sinin arttirilmasini saglayan index 
+	simdi ise spring in tum database islemlerini halledecegi bir interface yazicagiz
+		EmployeeRepository
+		repository package i altinda olsun
+		bu class CrudRepository class ini extend etsin, bu class icine iki generic class alir, Ilki data class i, ikincisi ise primary key icin kullanilacak class variable inin tipi
+		bir de bu class annotation olarak Repository yi almasi gerekiyor, o da spring den geliyor, bu class in bir repository oldugunu anlayabilmesi icin.
+		
+
+bu sinif uzerinden database crud operation larini yapabiliriz;
+simdi db yi doldurmak icin bir class yazalim,
+	InitDataLoader 
+	bu main class seviyesinde olabilir,
+	Component annotation i almasi gerekiyor ki, spring class i component olarak load etsin.
+	EmployeeRepository yi autowire ile inject et
+	
+	sonra bir method ile employee leri olustur, liste ile, sonra repository ile db ye ekle
+		rep.save(employee)
+		
+simdi ise spring e jpa repository erini scan edip bulmasini soylememiz lazim, yoksa bizim crud operation lari yapan repository class i load olmaz, sadece repository i de deyebiliriz.
+onun icin main class imizin uzerinde EnableJpaRepositories annotation ini kullanabiliriz, bu annotation da spring tarafindan yazilmis ve icine scan edicegi package name i veriyoruz.
+
+simdi bir de datayi load edicek class i ve method u calstirmamiz lazim. o da kolay, main class inda bir method yaziyoruz ve bu method @Bean annotation i alicak basina, ve CommandLineRunner return etmeli, bu method a hangi Class i inject ediceksek o class tipinde parametre veriyoruz. bu sekildel data yi load edebilirz, 
+bir ayrinti ise application load olurken Component olan InitDataLoader class i bu bean initializer method una veriliyor. bu sekilde cagiriliyor.
+
+spring boot project ini run ettikten sonra simdi h2 ya bakalim oradalar mi?
+
+su linke git
+	http://localhost:8080/h2-console
+
+jdbs driver i soyle degistir:
+	jdbc:h2:mem:testdb
+	
+baglan
+	orada in memory bir schema ve table olustu.
+	
+
+simdi ilk olarak service kismini yazalim
+	service package icinde, EmployeeService olsun ismi
+	ilk method db deki tum employee leri dondursun
+	Iterable bir employee listesi donsun
+	icine tabi autowire employee crud repository sini alicak
+	@Service i de class uzerine yaziyoruz, spring bu class in bir spring service i oldugunu anlamasi icin.
+	
+simdi ise controller kismini yazalim
+controller package inin altinda EmployeeController olsun ismi
+	bu class @RestController annotation ini almasi gerekiyor
+	simdi tum employee leri dondurecek bir de method yazalim
+	autowire ile aldigimiz service class inin getAllEmployees method unu return ediyoruz o kadar.
+	
+ONEMLI
+	Intellij uzerinden jar create edince cikan jar calismiyor. bu bir problem, onun yerine mvnw.cmd yi kullanarak jar file cikarabiliriz. 
+	mnvw bize maven repository si saglayan ama ortami bize gostermeyen bir application
+	su sekilde kullanilabilir 
+		mvnw.cmd clean install
+	bununla birlikte her projenin maven version i farkli olabilir.
+	bu plugin bize 

@@ -83,3 +83,37 @@ ONEMLI
 		mvnw.cmd clean install
 	bununla birlikte her projenin maven version i farkli olabilir.
 	bu plugin bize 
+	
+simdi ise rest tarafini yazarken bazi seyler ogrendim, 
+	CrudRepository nin bazi method lari Optional object i donuyor bize, bunlari nasil kullanabiliriz, 
+	mesela findById method u Optional<T> seklinde return ediyor bunu service tarafinda kullaniyoruz controller da ise soyle guzel bir code kullanabiliriz:
+	...
+		Employee emp = service.getEmployeeById(id);
+		return emp.ifPresents().orElse(new Employee());
+	...
+	
+	burada bizi NPE indan nasil kurtarabilecegini goruyoruz ve tek line da mukemmel bir komut yazmis olduk.
+	
+	--------------------
+	
+	rest uzerinden employee eklemeye calistigimizda eger request body de id sini verirsek employee nin, yine de siradaki id ile create edilir JPA tarafindan, cunku Employee object inin id sinin GeneratedValue olarak nitelendirmistik.
+	
+	--------------------
+	
+	
+	bır field i inject etmek cok dogru bir yaklasım degil. Onun yerine contructor inject etmek daha dogru bir yaklaşım olarak kabul ediliyor:
+		
+	...
+	private final EmployeeRepository repository;
+
+    @Autowired
+    public EmployeeService(EmployeeRepository injectedRepository) {
+        this.repository = injectedRepository;
+    }
+	...
+	
+	bu sekilde yapınca, kod daha düzgün oluyor. Class ın dependency leri daha kolay anlaşılabiliyor. SOLID princible larına göre daha dogru bir code oluyor.
+	hidden dependency olayı ortadan kalkıyor, constructor da herşey belli oluyor.
+	
+	spring boot için de bean initialization işlemleri kolaylaşıyor.
+	

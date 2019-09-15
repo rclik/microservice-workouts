@@ -13,9 +13,12 @@ import java.util.Optional;
 public class EmployeeController {
 
     private final Employee EMPTY_EMPLOYEE = new Employee();
+    private final EmployeeService service;
 
     @Autowired
-    private EmployeeService service;
+    public EmployeeController(EmployeeService employeeService){
+        this.service = employeeService;
+    }
 
     @GetMapping("/tcs/employees")
     public Iterable<Employee> findAllEmployees() {

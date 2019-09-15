@@ -83,6 +83,10 @@ ONEMLI
 		mvnw.cmd clean install
 	bununla birlikte her projenin maven version i farkli olabilir.
 	bu plugin bize 
+mvnw v nin ubuntu tarinda cok guzel bir kolaylik sagladi bize. Yukarida anlatildigi gibi, sadece java sistemde oldugunda sunu yaptim:
+	sh mvnw clean install
+bu da bana jar dosyasini olusturdu. Bu sekilde ubuntu da bir de maven kurmama gerek kalmadi. 
+
 	
 simdi ise rest tarafini yazarken bazi seyler ogrendim, 
 	CrudRepository nin bazi method lari Optional object i donuyor bize, bunlari nasil kullanabiliriz, 
@@ -116,4 +120,3 @@ simdi ise rest tarafini yazarken bazi seyler ogrendim,
 	hidden dependency olayı ortadan kalkıyor, constructor da herşey belli oluyor.
 	
 	spring boot için de bean initialization işlemleri kolaylaşıyor.
-	

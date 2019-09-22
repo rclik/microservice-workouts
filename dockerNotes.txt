@@ -1,0 +1,43 @@
+
+Dogru sekilde bir CI automation ve code islemesi nasil olmali?
+
+
+server ve client side code larin ayri ayri git repository de durmalari gerekiyor
+her git repository de bir degisiklik olunce ci otomatik olarak build kosmali, sonra ut kosmali, sonra varsa automation test bir degisik tabirler integration test kosmali. integration ise senaryonun test edilmesidir.
+bu islemler bitince yeni code dan docker file da kullanilarak yeni bir docker image build edilmeli ve sonrasinda bu docker image in docker hub a atilmasi lazim.
+sonra arkada docker hub daki activity leri izleyen canary vb uyulamalar araciligiyla docker hub a gelen image lari alicak ve deploy edicek, bu sekilde islem birmis olacak.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+bir spring boot application i icin docker image olusturma:
+
+ilk olarak bunu docker file ile yapalim ki herkes icin anlasilabilir bir image olsun, yoksa bir image a ekleye ekleye de gidebiliriz ama o zaman baska biri gelince daha once hangi application lari ekledigimizi bilemez, ve de o application larin version i da onemlidir.
+
+docker file in ismi DockerFileForSpringBoot olsun, 
+    -- normalde sadece docker file in ismi DockerFile olmasi gerekiyor. bu sekilde docker command larini daha duzgun kosabiliriz
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
+FROM openjdk:8-jdk-alpine
+VOLUME /tmp
+ARG JAR_FILE
+COPY ${JAR_FILE} app.jar
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+
+
+FROM openjdk:8-jdk-alpine --> burada alphine in openjdk version ini ile olan image indan kendi image imizi create edicegimizi soyluyoruz
+
+VOLUME /tmp --> burada /tmp volume u olusturuyoruz, cunku spring boot default olarak /tmp folder inda working directory sini set eder. working directory sini baska bir yer de verebilirdik. bunu sonra yapicaz.
+volume ise bize ayri bir yetenek kazandiriyor. soyle ki bu docker bizim /var/lib/docker altina bir volume olusturuyor, bunu spring docker image kullanicak, boyle dusununce baska docker image lara da ayni volume u verebiliriz, bu da ayri bir yetenek.
+
+ARG JAR_FILE --> burada ise docker run ederken disaridan bir aguman alacagimizi soyluyoruz onun ismi de JAR_FILE.
+
+COPY ${JAR_FILE} app.jar --> burada use disaridan aldigimiz jar file i app.jar olarak rename etmis oluyoruz.
+
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"] --> burada ise spring boot application ini calistiriyoruz.
+
+simdi bu docker file ini build edelim:
+    docker build --build-arg JAR_FILE=../springBootJarFile --tag springboot-docker-image --file DockerFile . 
+
+burada . su demek, bizim context imiz bulundugumuz dizin. burada --file DockerFile yazmamiza gerek yok, cunku default isim olan DockerFile isminde yazilmis.
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------
